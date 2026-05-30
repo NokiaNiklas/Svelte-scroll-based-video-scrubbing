@@ -4,19 +4,33 @@
   import IconChevronDown from '~icons/lucide/chevron-down';
   import type { Snippet } from 'svelte';
 
+  export type VideoSource = { src: string; type: string };
+
   interface Props {
-    src:            string;
-    scrollHeight?: string;  // scroll travel, default '500vh'
-    class?:        string;  // classes on the sticky container
-    children?:      Snippet<[number]>;  // receives scrollProgress (0–1)
+    src?:          string;         // single source shorthand
+    sources?:      VideoSource[];  // multiple sources — browser picks via canPlayType
+    scrollHeight?: string;
+    class?:        string;
+    children?:     Snippet<[number]>;
   }
 
   const {
     src,
+    sources,
     scrollHeight = '500vh',
     class: cls   = '',
     children,
   }: Props = $props();
+
+  // Let the browser decide which source it can play.
+  // canPlayType returns 'probably' | 'maybe' | '' — pick first non-empty.
+  function pickSource(list: VideoSource[]): VideoSource {
+    const probe = document.createElement('video');
+    for (const s of list) {
+      if (probe.canPlayType(s.type) !== '') return s;
+    }
+    return list[list.length - 1]; // last entry as hard fallback
+  }
 
   // requestVideoFrameCallback is not yet in lib.dom.d.ts
   interface VideoFrameMetadata {
@@ -51,9 +65,14 @@
 
     (async () => {
       try {
+        // Resolve source — sources[] takes priority, falls back to src string
+        const active: VideoSource = sources?.length
+          ? pickSource(sources)
+          : { src: src!, type: 'video/webm' };
+
         // Download
         loadLabel    = 'Loading';
-        const res    = await fetch(src, { signal: controller.signal });
+        const res    = await fetch(active.src, { signal: controller.signal });
         const total  = Number(res.headers.get('content-length')) || 0;
         const reader = res.body!.getReader();
         const chunks: Uint8Array<ArrayBuffer>[] = [];
@@ -67,7 +86,9 @@
           loadPercent = total ? Math.round((downloaded / total) * 50) : 25;
         }
 
-        const blobUrl = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+        // Strip codec string for Blob (e.g. 'video/mp4; codecs=hvc1' → 'video/mp4')
+        const mimeType = active.type.split(';')[0].trim();
+        const blobUrl  = URL.createObjectURL(new Blob(chunks, { type: mimeType }));
 
         // Extract frames
         loadLabel = 'Preparing';

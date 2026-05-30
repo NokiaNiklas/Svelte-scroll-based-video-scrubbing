@@ -25,7 +25,6 @@ Ein wiederverwendbarer Component der ein Video komplett vorlädt, alle Frames in
 
 ```bash
 pnpm add gsap lenis
-pnpm add -D unplugin-icons @iconify-json/lucide
 ```
 
 ### 2. Lenis in `+page.svelte` einrichten
@@ -74,7 +73,7 @@ static/
 
 ```svelte
 <ScrollVideo
-  src="/video/animation.webm"   <!-- Pflicht: Pfad zum Video -->
+  src="/video/animation.webm"   <!-- einzelne Quelle (shorthand) -->
   scrollHeight="500vh"          <!-- Scroll-Reiseweite, default: '500vh' -->
   class="bg-base-100"           <!-- CSS-Klassen für den sticky Container -->
 >
@@ -108,56 +107,39 @@ Lenis nur einmal in `+page.svelte` einrichten. Beide Components nutzen es automa
 
 ---
 
-## Fallback-Video für Safari (MP4) einbauen
+## Fallback-Video für Safari (MP4 / HEVC)
 
-WebM mit Alpha-Kanal wird von Safari nicht unterstützt. Safari braucht entweder **HEVC mit Alpha** (`.mov`) oder ein normales **MP4** als Fallback (ohne Transparenz).
+WebM mit Alpha-Kanal wird von Safari nicht unterstützt. Der Component hat dafür ein eingebautes `sources`-Prop — der Browser wählt selbst via `canPlayType()` die erste Quelle die er abspielen kann.
 
-### So erweiterst du den Component
-
-**1. Props ergänzen** in `ScrollVideo.svelte`:
-
-```ts
-interface Props {
-  src:          string;   // primäre Quelle (WebM)
-  fallbackSrc?: string;   // Fallback für Safari (MP4 oder MOV)
-  // ...restliche Props
-}
-
-const { src, fallbackSrc, ... } = $props();
-```
-
-**2. Browser-Detection** vor dem Fetch:
-
-```ts
-function getVideoSrc(): string {
-  // Safari erkennen: kein WebM-Support
-  const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-  if (isSafari && fallbackSrc) return fallbackSrc;
-  return src;
-}
-```
-
-**3. Fetch mit dem richtigen Src:**
-
-```ts
-// Statt: fetch(src, ...)
-const activeSrc  = getVideoSrc();
-const mimeType   = activeSrc.endsWith('.webm') ? 'video/webm'
-                 : activeSrc.endsWith('.mov')  ? 'video/quicktime'
-                 : 'video/mp4';
-
-const res    = await fetch(activeSrc, { signal: controller.signal });
-const blobUrl = URL.createObjectURL(new Blob(chunks, { type: mimeType }));
-```
-
-**4. Verwendung:**
+### Verwendung mit mehreren Quellen
 
 ```svelte
-<ScrollVideo
-  src="/video/animation.webm"
-  fallbackSrc="/video/animation.mp4"
-/>
+<script lang="ts">
+  import ScrollVideo, { type VideoSource } from '$lib/components/ScrollVideo.svelte';
+
+  const sources: VideoSource[] = [
+    { src: '/video/animation.webm',  type: 'video/webm' },               // Chrome, Firefox
+    { src: '/video/animation.mov',   type: 'video/mp4; codecs=hvc1' },   // Safari (mit Alpha)
+    { src: '/video/animation.mp4',   type: 'video/mp4; codecs=avc1.640028' }, // Fallback (kein Alpha)
+  ];
+</script>
+
+<ScrollVideo {sources} />
 ```
+
+Der Component testet jeden Eintrag der Reihe nach mit `canPlayType()` und lädt die erste unterstützte Quelle. Der letzte Eintrag dient als harter Fallback falls nichts passt.
+
+### Wie `canPlayType` funktioniert
+
+```ts
+video.canPlayType('video/webm')                      // '' in Safari → überspringen
+video.canPlayType('video/mp4; codecs=hvc1')          // 'probably' in Safari → nehmen
+video.canPlayType('video/mp4; codecs=avc1.640028')   // 'probably' überall → Fallback
+```
+
+Rückgabewerte: `'probably'` · `'maybe'` · `''` (nicht unterstützt). Der Component nimmt den ersten Eintrag der nicht leer ist.
+
+> **Kein UserAgent-Sniffing** — der Browser entscheidet selbst was er kann, unabhängig von Betriebssystem-Version oder Browser-Flags.
 
 ### Video-Formate im Überblick
 
