@@ -1,0 +1,24 @@
+/* Extend Tailwind theme with non-default container sizes */
+@theme {
+  --container-8xl: 88rem; /* 1408px */
+}
+
+@layer components {
+  /* Full-width column wrapper — use as outermost section element */
+  .outer-section {
+    @apply w-full flex flex-col items-center;
+  }
+
+  /* Centred content columns at fixed max-widths */
+  .inner-section-5xl {
+    @apply px-4 max-w-5xl w-full flex;
+  }
+
+  .inner-section-6xl {
+    @apply px-4 max-w-6xl w-full flex;
+  }
+
+  .inner-section-8xl {
+    @apply px-4 max-w-8xl w-full flex;
+  }
+}
