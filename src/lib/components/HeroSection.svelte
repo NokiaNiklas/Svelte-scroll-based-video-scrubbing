@@ -26,7 +26,7 @@
       triggers.push(
         ScrollTrigger.create({
           trigger: block,
-          start: 'top 90%',    // fade in: später — oberkante muss erst die Mitte erreichen
+          start: 'top 80%',    // fade in: später — oberkante muss erst die Mitte erreichen
           end:   'bottom 20%', // fade out: früher — unterkante verlässt schon bei Mitte
           onEnter:     () => gsap.to(block, { opacity: 1, y: 0,   duration: 0.7, ease: 'power2.out' }),
           onLeave:     () => gsap.to(block, { opacity: 0, y: -30, duration: 0.5, ease: 'power2.in'  }),
@@ -61,9 +61,9 @@
 </section>
 
 <!-- ── Video + scrolling text blocks ─────────────────────────────────────── -->
-<div class="relative -mt-[80vh]">
+<div class="relative">
 
-  <ScrollVideo src="/video/animation.webm" scrollHeight="500vh" class="bg-base-100" />
+  <ScrollVideo src="/video/animation.webm" scrollHeight="500vh" class="bg-base-100 -mt-180" />
 
   <div class="absolute inset-0 z-20 pointer-events-none flex flex-col">
 

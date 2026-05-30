@@ -9,7 +9,7 @@
   $effect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const lenis    = new Lenis({ duration: 0.1 });
+    const lenis    = new Lenis({ duration: 0.5 });
     const lenisRaf = (time: number) => lenis.raf(time * 1000);
 
     lenis.on('scroll', ScrollTrigger.update);

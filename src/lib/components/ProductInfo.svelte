@@ -7,22 +7,25 @@
   $effect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    const targets = sectionEl.querySelectorAll<HTMLElement>('[data-animate]');
-    targets.forEach((el) => {
-      gsap.from(el, {
-        y: 40,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power2.out',
-        scrollTrigger: {
+    const triggers: ScrollTrigger[] = [];
+
+    sectionEl.querySelectorAll<HTMLElement>('[data-animate]').forEach((el) => {
+      gsap.set(el, { opacity: 0, y: 40 });
+
+      triggers.push(
+        ScrollTrigger.create({
           trigger: el,
           start: 'top 85%',
-          toggleActions: 'play none none reverse',
-        },
-      });
+          end:   'bottom 15%',
+          onEnter:     () => gsap.to(el, { opacity: 1, y: 0,   duration: 0.8, ease: 'power2.out' }),
+          onLeave:     () => gsap.to(el, { opacity: 0, y: -30, duration: 0.5, ease: 'power2.in'  }),
+          onEnterBack: () => gsap.to(el, { opacity: 1, y: 0,   duration: 0.8, ease: 'power2.out' }),
+          onLeaveBack: () => gsap.to(el, { opacity: 0, y:  30, duration: 0.5, ease: 'power2.in'  }),
+        })
+      );
     });
 
-    return () => ScrollTrigger.getAll().forEach(t => t.kill());
+    return () => triggers.forEach(t => t.kill());
   });
 </script>
 

@@ -7,9 +7,10 @@
   export type VideoSource = { src: string; type: string };
 
   interface Props {
-    src?:          string;         // single source shorthand
-    sources?:      VideoSource[];  // multiple sources — browser picks via canPlayType
+    src?:          string;
+    sources?:      VideoSource[];
     scrollHeight?: string;
+    startOffset?:  string | number; // delay scroll start, e.g. '80vh' or 800 (px)
     class?:        string;
     children?:     Snippet<[number]>;
   }
@@ -18,6 +19,7 @@
     src,
     sources,
     scrollHeight = '500vh',
+    startOffset  = 0,
     class: cls   = '',
     children,
   }: Props = $props();
@@ -52,6 +54,7 @@
 
   let scrollProgress = $state(0);
   let videoReady     = $state(false);
+  let triggered      = $state(false); // true only after startOffset is reached
   let loadPercent    = $state(0);
   let loadLabel      = $state('Loading');
 
@@ -189,8 +192,10 @@
 
     const st = ScrollTrigger.create({
       trigger: sectionEl,
-      start: 'top top',
+      start: startOffset ? `top+=${startOffset} top` : 'top top',
       end: 'bottom bottom',
+      onEnter:     () => { triggered = true;  },
+      onLeaveBack: () => { triggered = false; },
       onUpdate: ({ progress }) => {
         scrollProgress = progress;
         drawFrame(progress);
@@ -210,11 +215,11 @@
 
   <div class="sticky top-0 h-screen overflow-hidden {cls}">
 
-    <!-- Canvas — frames drawn here -->
+    <!-- Canvas — invisible until startOffset is reached, then fades in -->
     <canvas
       bind:this={canvasEl}
       class="absolute inset-0 w-full h-full transition-opacity duration-700"
-      style="object-fit: contain; opacity: {videoReady ? 1 : 0}"
+      style="object-fit: contain; opacity: {videoReady && triggered ? 1 : 0}"
     ></canvas>
 
     <!-- Overlay content (vignette, text, etc.) — [data-animate] children are auto-animated -->
@@ -222,7 +227,7 @@
       <div
         bind:this={childrenEl}
         class="relative z-20 w-full h-full transition-opacity duration-700"
-        style="opacity: {videoReady ? 1 : 0}"
+        style="opacity: {videoReady && triggered ? 1 : 0}"
       >
         {@render children(scrollProgress)}
       </div>
