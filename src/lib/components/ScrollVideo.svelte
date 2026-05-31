@@ -219,7 +219,7 @@
     <canvas
       bind:this={canvasEl}
       class="absolute inset-0 w-full h-full transition-opacity duration-700"
-      style="object-fit: contain; opacity: {videoReady && triggered ? 1 : 0}"
+      style="object-fit: cover; opacity: {videoReady && triggered ? 1 : 0}"
     ></canvas>
 
     <!-- Overlay content (vignette, text, etc.) — [data-animate] children are auto-animated -->

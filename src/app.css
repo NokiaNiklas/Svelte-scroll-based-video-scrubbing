@@ -5,7 +5,7 @@
 
 @plugin "daisyui/theme" {
   name: "luxury";
-  default: true;
+  default: false;
   prefersdark: false;
   color-scheme: "dark";
   --color-base-100: oklch(14.076% 0.004 285.822);
