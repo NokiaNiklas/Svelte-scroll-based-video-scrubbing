@@ -1,7 +1,10 @@
 <script lang="ts">
   import { gsap } from 'gsap';
   import { ScrollTrigger } from 'gsap/ScrollTrigger';
-  import ScrollVideo from './ScrollVideo.svelte';
+  import { ScrollSpriteAnimation } from './scroll-sprite-animation';
+
+  // Lazy import map of the hero sprite sheets — handed to the component.
+  const heroSheets = import.meta.glob('$lib/assets/hero-animation/spritesheet-*.webp');
 
   let textSectionEl: HTMLElement;
   let block1: HTMLElement;
@@ -43,7 +46,7 @@
 <!-- ── Intro text section ─────────────────────────────────────────────────── -->
 <section
   bind:this={textSectionEl}
-  class="h-screen bg-base-100 flex flex-col items-center justify-center -mt-10 text-center px-6 select-none relative z-10"
+  class="h-screen bg-base-100 flex flex-col items-center justify-center text-center px-6 select-none"
 >
   <div class="mb-20">
       <span data-animate class="mb-5 inline-block rounded-full border border-base-content/20 px-4 py-1.5
@@ -60,53 +63,48 @@
 
 </section>
 
-<!-- ── Video + scrolling text blocks ─────────────────────────────────────── -->
-<div class="relative">
+<!-- ── 3 columns: text · animation · text ────────────────────────────────────
+     Sprite sheets live in src/lib/assets/hero-animation/ (built via
+     hero-animation/pack-frames.sh). frameCount = total frames it reported.
+     The middle column pins (sticky) while the side texts scroll past. -->
+<section class="bg-base-100 outer-section">
+  <div class="mx-auto grid w-full max-w-8xl grid-cols-[1fr_3fr_1fr] gap-8 px-6">
 
-  <ScrollVideo src="/video/animation.webm" scrollHeight="500vh" class="bg-base-100 -mt-180" />
-
-  <div class="absolute inset-0 z-20 pointer-events-none flex flex-col">
-
-    <div class="h-[50vh] shrink-0"></div>
-
-    <!-- Text 1 — links -->
-    <div id="kapitel-1" class="h-[100vh] shrink-0 flex items-center pl-[18%]">
-      <div bind:this={block1} class="max-w-sm text-left opacity-0">
+    <!-- LEFT texts (Kapitel I + III) — hug the centre -->
+    <div class="flex min-w-0 flex-col items-end text-left">
+      <div class="h-[30vh] shrink-0"></div>
+      <div bind:this={block1} class="w-full max-w-xs opacity-0">
         <p class="mb-3 text-xs tracking-[0.3em] uppercase text-base-content/35">Kapitel I</p>
-        <h2 class="mb-4 text-5xl leading-tight text-base-content">Der erste<br />Atemzug</h2>
+        <h2 class="mb-4 text-4xl leading-tight text-base-content">Der erste<br />Atemzug</h2>
         <p class="text-base leading-relaxed text-base-content/50">
-          Aus dem Nichts entstand Form —<br />und mit ihr der Beginn aller Dinge.
+          Aus dem Nichts entstand Form — und mit ihr der Beginn aller Dinge.
         </p>
       </div>
-    </div>
 
-    <div class="h-[50vh] shrink-0"></div>
-
-    <!-- Text 2 — rechts -->
-    <div id="kapitel-2" class="h-[100vh] shrink-0 flex items-center justify-end pr-[18%]">
-      <div bind:this={block2} class="max-w-sm text-right opacity-0">
-        <p class="mb-3 text-xs tracking-[0.3em] uppercase text-base-content/35">Kapitel II</p>
-        <h2 class="mb-4 text-5xl leading-tight text-base-content">Die große<br />Wandlung</h2>
-        <p class="text-base leading-relaxed text-base-content/50">
-          Zwischen Licht und Schatten —<br />entscheidet sich alles in einem Moment.
-        </p>
-      </div>
-    </div>
-
-    <div class="h-[50vh] shrink-0"></div>
-
-    <!-- Text 3 — links -->
-    <div id="kapitel-3" class="h-[100vh] shrink-0 flex items-center pl-[18%]">
-      <div bind:this={block3} class="max-w-sm text-left opacity-0">
+      <div class="h-[150vh] shrink-0"></div>
+      <div bind:this={block3} class="w-full max-w-xs opacity-0">
         <p class="mb-3 text-xs tracking-[0.3em] uppercase text-base-content/35">Kapitel III</p>
-        <h2 class="mb-4 text-5xl leading-tight text-base-content">Die<br />Vollendung</h2>
+        <h2 class="mb-4 text-4xl leading-tight text-base-content">Die<br />Vollendung</h2>
         <p class="text-base leading-relaxed text-base-content/50">
-          Was begann als Flüstern —<br />endet als unvergängliche Legende.
+          Was begann als Flüstern — endet als unvergängliche Legende.
         </p>
       </div>
     </div>
 
-    <div class="h-[50vh] shrink-0"></div>
+    <!-- MIDDLE: pinned animation (transparent — floats on the section bg) -->
+    <ScrollSpriteAnimation sheets={heroSheets} frameCount={192} />
+
+    <!-- RIGHT texts (Kapitel II) — hug the centre -->
+    <div class="flex min-w-0 flex-col items-start text-right">
+      <div class="h-[105vh] shrink-0"></div>
+      <div bind:this={block2} class="w-full max-w-xs opacity-0">
+        <p class="mb-3 text-xs tracking-[0.3em] uppercase text-base-content/35">Kapitel II</p>
+        <h2 class="mb-4 text-4xl leading-tight text-base-content">Die große<br />Wandlung</h2>
+        <p class="text-base leading-relaxed text-base-content/50">
+          Zwischen Licht und Schatten — entscheidet sich alles in einem Moment.
+        </p>
+      </div>
+    </div>
 
   </div>
-</div>
+</section>
