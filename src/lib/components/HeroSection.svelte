@@ -92,7 +92,7 @@
     </div>
 
     <!-- MIDDLE: pinned animation (transparent — floats on the section bg) -->
-    <ScrollSpriteAnimation sheets={heroSheets} frameCount={192} />
+    <ScrollSpriteAnimation sheets={heroSheets} frameCount={823} />
 
     <!-- RIGHT texts (Kapitel II) — hug the centre -->
     <div class="flex min-w-0 flex-col items-start text-right">
